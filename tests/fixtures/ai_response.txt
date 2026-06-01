@@ -1,0 +1,16 @@
+__RECOMMENDED_BUMP__: minor
+# Release Assistant Brief
+## Release Summary
+This release adds export support and improves release automation. It should be validated around generated release notes and publish flow.
+## Highlights
+- Add export support.
+- Improve GitHub release publishing.
+- Improve release validation.
+## Risks & Checks
+- Verify generated notes before publishing.
+- Confirm the target git tag is correct.
+## Suggested Release Notes
+### Features
+- Add export support.
+### Improvements
+- Improve release publishing flow.

@@ -1,146 +1,271 @@
-# ReleaseGuru 🚀
+# ReleaseGuru
 
-ReleaseGuru is a lightweight, blazing-fast CLI tool designed to convert your git commit history into clean, user-facing, and professional changelogs using AI. 
+ReleaseGuru is an AI release assistant CLI for git repositories.
 
-It features an intelligent **AI Semantic Version Bump Recommender** and **One-Click GitHub Release Automation**. It is built on a **"bring-your-own-key"** model, supporting multiple AI providers. You can easily switch between providers, pass custom API keys, and use custom models to bear the charge yourself!
+Main feature: turn commit history into a release plan that tells the team what changed, what matters, what to test, and what can be published.
 
----
+Secondary helpers: version bumping, release notes, GitHub Releases, JSON output, and GitHub Actions outputs.
 
-## 🛠️ Project Structure
+## Features
 
-```text
-releaseguru/
-├── releaseguru.py      # Main Click-based CLI entry point (SemVer + GitHub integrations)
-├── providers.py        # Adaptor/connector logic for all AI providers
-├── requirements.txt    # Python library dependencies (includes requests)
-├── .env.example        # Shell template for API keys & GitHub token
-└── README.md           # Documentation, usage guide, and release steps
+- AI release brief from git commits
+- Release summary, highlights, risks, checks, and user-facing notes
+- SemVer recommendation: `major`, `minor`, or `patch`
+- Auto-version from latest git tag
+- Manual version override
+- Markdown or JSON output
+- Notes-only mode for GitHub release bodies
+- Dry-run mode for CI and review
+- GitHub Release publish
+- Draft and prerelease publish modes
+- GitHub repo override with `--github-repo`
+- Optional tag creation and push
+- GitHub Actions output support with `--ci-output`
+- Multi-provider support: Groq, Gemini, OpenAI, Anthropic, xAI
+
+## Install
+
+After PyPI publish:
+
+```bash
+pipx install releaseguru
 ```
 
----
+Or:
 
-## 🌟 Advanced Features
-
-### 1. 🤖 AI Semantic Version Recommender
-If you do not specify an explicit version with `--version`, the AI analyzes your commit log and outputs a recommendation based on SemVer:
-- **Major**: If breaking changes are found.
-- **Minor**: If new features are added.
-- **Patch**: If only bug fixes, improvements, or chores are found.
-
-ReleaseGuru automatically reads your latest Git tag, calculates the recommended version, and outputs it in the release notes! E.g. `v1.2.0` automatically bumps to `v1.3.0` for new features.
-
-### 2. 🐙 One-Click GitHub Release Automation
-Add the `--publish` flag to push your tag and create a new Release directly on GitHub! ReleaseGuru automatically parses your repository slug (e.g. `owner/repo`) from your Git remote origin URL and publishes the release with your clean, AI-generated changelog description.
-
----
-
-## ⚡ Supported Providers & Defaults
-
-| Provider | Click Option `--provider` | Default Model | Free Tier |
-|---|---|---|---|
-| **Groq** (Fastest) | `groq` | `llama-3.3-70b-versatile` | Yes — 14,400 req/day |
-| **Gemini** | `gemini` | `gemini-1.5-flash` | Yes — 1,500 req/day |
-| **OpenAI** | `openai` | `gpt-4o-mini` | No (paid/very cheap) |
-| **Anthropic** | `anthropic` | `claude-3-5-haiku-20241022` | No (paid/very cheap) |
-| **xAI** | `xai` | `grok-3-mini` | $25 free credits on signup |
-
----
-
-## 📦 Setup & Installation
-
-### 1. Clone / Copy the project
-Make sure you are in the project folder:
 ```bash
-cd "/path/to/ReleaseGuru"
+pip install releaseguru
 ```
 
-### 2. Set up a Virtual Environment
-Initialize and activate your virtual environment:
+During local development:
+
 ```bash
-# Create virtual environment
+cd ReleaseGuru
 python -m venv venv
-
-# Activate virtual environment
-# Windows (PowerShell):
-venv\Scripts\Activate.ps1
-# Windows (Command Prompt):
-venv\Scripts\activate.bat
-# Linux / macOS:
-source venv/bin/activate
-```
-
-### 3. Install Dependencies
-```bash
-pip install -r requirements.txt
-```
-
-### 4. Setup environment variables
-Copy the example environment template:
-```bash
+pip install -e .
 cp .env.example .env
 ```
-Open `.env` and fill in the API key for your chosen provider, and optionally your `GITHUB_TOKEN`.
 
----
+Add one AI provider key to `.env`.
 
-## 🎯 Usage Examples
-
-### 1. Automatic Generation & SemVer Bumping (No Args)
-Auto-detects active key from `.env`, analyzes commits since the latest tag, recommends the SemVer bump, bumps the version label, and outputs the changelog:
-```bash
-python releaseguru.py
+```env
+GROQ_API_KEY=
+OPENAI_API_KEY=
+ANTHROPIC_API_KEY=
+GEMINI_API_KEY=
+XAI_API_KEY=
+GITHUB_TOKEN=
 ```
 
-### 2. One-Click GitHub Publishing
-Publish the release directly to GitHub with the AI-recommended version and changelog:
-```bash
-python releaseguru.py --publish
-```
-*Note: Make sure your `GITHUB_TOKEN` is set in `.env` or passed via `--github-token`.*
+`GITHUB_TOKEN` is only needed when publishing.
 
-### 3. Overriding Version, Model, and Key
-Bear your own charges on the fly by supplying your personal API key, choosing a specific model, and manually forcing a version label:
+## Basic Use
+
+Generate release plan:
+
 ```bash
-python releaseguru.py --provider openai --api-key "sk-proj-YOUR_KEY" --model "gpt-4o" --version "v2.0.0" --publish
+releaseguru
 ```
 
-### 4. Save Directly to a File
+Use custom range:
+
 ```bash
-python releaseguru.py --output CHANGELOG.md
+releaseguru --from v1.2.0 --to HEAD
 ```
 
-### 5. Running from other repositories
-You can run ReleaseGuru inside any git repository by calling the script:
+Save to file:
+
 ```bash
-cd /path/to/another/project
-python /path/to/ReleaseGuru/releaseguru.py --publish
+releaseguru --output RELEASE.md
 ```
 
----
+Generate JSON for automation:
 
-## 🚀 How to Release / Distribute
+```bash
+releaseguru --format json --output release.json
+```
 
-To distribute ReleaseGuru to other developers, you have three primary options:
+Only print release notes:
 
-### Option A: Direct Script Sharing
-Host the `releaseguru/` directory on GitHub. Developers can clone it, setup their virtual environments, and run it.
+```bash
+releaseguru --notes-only
+```
 
-### Option B: Executable Packaging (Single Binary)
-Compile ReleaseGuru into a single standalone executable (e.g. `releaseguru.exe` on Windows or a binary on macOS/Linux) that does not require Python.
+Dry run publish flow:
 
-1. **Install PyInstaller**:
-   ```bash
-   pip install pyinstaller
-   ```
-2. **Build the Executable**:
-   ```bash
-   pyinstaller --onefile releaseguru.py
-   ```
-3. **Distribute**:
-   The standalone executable will be located in the `dist/` directory.
+```bash
+releaseguru --publish --dry-run --github-repo owner/repo
+```
 
-### Option C: Publish to PyPI (For Global Pip Installation)
-To allow installation via `pip install releaseguru`:
-1. Create a `pyproject.toml` or `setup.py` file.
-2. Build the package: `python -m build`.
-3. Upload to PyPI: `twine upload dist/*`.
+Publish full release:
+
+```bash
+releaseguru --publish
+```
+
+Publish only notes body:
+
+```bash
+releaseguru --publish --notes-only
+```
+
+Publish draft:
+
+```bash
+releaseguru --publish --draft
+```
+
+Publish prerelease:
+
+```bash
+releaseguru --publish --prerelease
+```
+
+Publish without creating/pushing a local tag:
+
+```bash
+releaseguru --publish --skip-tag
+```
+
+## GitHub Actions
+
+Use this when you want manual release from Actions.
+
+```yaml
+name: ReleaseGuru
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install ReleaseGuru
+        run: pip install releaseguru
+      - name: Create release
+        id: releaseguru
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: releaseguru --publish --notes-only --ci-output
+
+      - name: Show result
+        run: |
+          echo "Version: ${{ steps.releaseguru.outputs.version }}"
+          echo "Bump: ${{ steps.releaseguru.outputs.bump_type }}"
+          echo "URL: ${{ steps.releaseguru.outputs.release_url }}"
+```
+
+For review before publishing:
+
+```yaml
+- name: Preview release
+  env:
+    GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+  run: releaseguru --dry-run --format json --output release.json
+```
+
+## Testing
+
+Syntax check:
+
+```bash
+python -m py_compile releaseguru/cli.py releaseguru/providers.py
+```
+
+Unit tests:
+
+```bash
+python -m unittest discover -s tests
+```
+
+CLI dry run with mocked AI response:
+
+```bash
+releaseguru --mock-response tests/fixtures/ai_response.txt --dry-run
+```
+
+Real AI test:
+
+```bash
+releaseguru --provider groq --dry-run
+```
+
+Real GitHub publish test:
+
+```bash
+releaseguru --provider groq --publish --draft
+```
+
+Use `--draft` first so you can inspect the release before making it public.
+
+## Release Ways
+
+- Local preview: `releaseguru --dry-run`
+- Local file: `releaseguru --output RELEASE.md`
+- CI preview: `releaseguru --format json --ci-output`
+- GitHub draft: `releaseguru --publish --draft`
+- GitHub prerelease: `releaseguru --publish --prerelease`
+- GitHub stable release: `releaseguru --publish`
+- Notes-only release body: `releaseguru --publish --notes-only`
+- Existing tag release: `releaseguru --publish --skip-tag --version v1.2.3`
+- Manual version release: `releaseguru --version v2.0.0 --publish`
+
+## Publish To PyPI
+
+Build package:
+
+```bash
+python -m pip install --upgrade build twine
+python -m build
+```
+
+Check package:
+
+```bash
+python -m twine check dist/*
+```
+
+Upload to TestPyPI first:
+
+```bash
+python -m twine upload --repository testpypi dist/*
+```
+
+Install from TestPyPI:
+
+```bash
+pipx install --index-url https://test.pypi.org/simple/ --pip-args="--extra-index-url https://pypi.org/simple/" releaseguru
+```
+
+Upload to real PyPI:
+
+```bash
+python -m twine upload dist/*
+```
+
+GitHub Actions publishing is also included in `.github/workflows/publish-pypi.yml`.
+For tokenless publishing, configure PyPI Trusted Publishing for this repository and publish a GitHub Release.
+
+## Provider Defaults
+
+| Provider | Option | Default model |
+|---|---|---|
+| Groq | `--provider groq` | `llama-3.3-70b-versatile` |
+| Gemini | `--provider gemini` | `gemini-1.5-flash` |
+| OpenAI | `--provider openai` | `gpt-4o-mini` |
+| Anthropic | `--provider anthropic` | `claude-3-5-haiku-20241022` |
+| xAI | `--provider xai` | `grok-3-mini` |
