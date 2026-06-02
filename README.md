@@ -224,42 +224,6 @@ Use `--draft` first so you can inspect the release before making it public.
 - Existing tag release: `releaseguru --publish --skip-tag --version v1.2.3`
 - Manual version release: `releaseguru --version v2.0.0 --publish`
 
-## Publish To PyPI
-
-Build package:
-
-```bash
-python -m pip install --upgrade build twine
-python -m build
-```
-
-Check package:
-
-```bash
-python -m twine check dist/*
-```
-
-Upload to TestPyPI first:
-
-```bash
-python -m twine upload --repository testpypi dist/*
-```
-
-Install from TestPyPI:
-
-```bash
-pipx install --index-url https://test.pypi.org/simple/ --pip-args="--extra-index-url https://pypi.org/simple/" releaseguru
-```
-
-Upload to real PyPI:
-
-```bash
-python -m twine upload dist/*
-```
-
-GitHub Actions publishing is also included in `.github/workflows/publish-pypi.yml`.
-For tokenless publishing, configure PyPI Trusted Publishing for this repository and publish a GitHub Release.
-
 ## Provider Defaults
 
 | Provider | Option | Default model |
