@@ -9,7 +9,7 @@ from releaseguru.cli import ReleaseResult, bump_version, extract_release_notes, 
 
 class ReleaseGuruTests(unittest.TestCase):
     def test_version_exists(self):
-        self.assertEqual(__version__, "0.1.0")
+        self.assertEqual(__version__, "0.1.2")
 
     def test_bump_version(self):
         self.assertEqual(bump_version("v1.2.3", "major"), "v2.0.0")
