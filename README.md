@@ -61,6 +61,10 @@ GITHUB_TOKEN=
 
 ## Basic Use
 
+## Example Output
+
+![ReleaseGuru dry-run example](docs/images/releaseguru-demo.png)
+
 Generate release plan:
 
 ```bash
