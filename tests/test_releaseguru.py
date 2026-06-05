@@ -1,5 +1,6 @@
 import json
 import unittest
+from pathlib import Path
 
 from releaseguru import (
     __version__,
@@ -9,7 +10,12 @@ from releaseguru.cli import ReleaseResult, bump_version, extract_release_notes, 
 
 class ReleaseGuruTests(unittest.TestCase):
     def test_version_exists(self):
-        self.assertEqual(__version__, "0.1.3")
+        pyproject = Path(__file__).resolve().parents[1] / "pyproject.toml"
+        version_line = next(
+            line for line in pyproject.read_text(encoding="utf-8").splitlines() if line.startswith("version = ")
+        )
+        expected = version_line.split("=", 1)[1].strip().strip('"')
+        self.assertEqual(__version__, expected)
 
     def test_bump_version(self):
         self.assertEqual(bump_version("v1.2.3", "major"), "v2.0.0")
