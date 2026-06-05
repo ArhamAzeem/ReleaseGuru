@@ -11,7 +11,22 @@ from dotenv import load_dotenv
 
 from .providers import PROVIDERS, auto_detect_provider
 
-load_dotenv()
+
+def load_releaseguru_env() -> None:
+    load_dotenv()
+
+    home = Path.home()
+    global_env_candidates = [
+        home / ".releaseguru.env",
+        home / ".config" / "releaseguru" / ".env",
+        home / "releaseguru.env",
+    ]
+    for env_path in global_env_candidates:
+        if env_path.is_file():
+            load_dotenv(env_path, override=False)
+
+
+load_releaseguru_env()
 
 
 @dataclass
@@ -32,6 +47,8 @@ def run_git(args: list[str], check: bool = True) -> subprocess.CompletedProcess:
         ["git", *args],
         capture_output=True,
         text=True,
+        encoding="utf-8",
+        errors="replace",
         check=check,
     )
 
@@ -39,12 +56,14 @@ def run_git(args: list[str], check: bool = True) -> subprocess.CompletedProcess:
 def get_commits(from_ref: str | None, to_ref: str) -> list[str]:
     range_spec = f"{from_ref}..{to_ref}" if from_ref else to_ref
     result = run_git(["log", range_spec, "--pretty=format:%s (%an)"])
-    return [line.strip() for line in result.stdout.splitlines() if line.strip()]
+    stdout = result.stdout or ""
+    return [line.strip() for line in stdout.splitlines() if line.strip()]
 
 
 def get_latest_tag() -> str | None:
     result = run_git(["describe", "--tags", "--abbrev=0"], check=False)
-    return result.stdout.strip() if result.returncode == 0 else None
+    stdout = result.stdout or ""
+    return stdout.strip() if result.returncode == 0 else None
 
 
 def get_github_repo_slug() -> str | None:
@@ -52,7 +71,8 @@ def get_github_repo_slug() -> str | None:
     if result.returncode != 0:
         return None
 
-    match = re.search(r"github\.com[:/]([^/]+)/([^.]+)(?:\.git)?", result.stdout.strip())
+    stdout = result.stdout or ""
+    match = re.search(r"github\.com[:/]([^/]+)/([^.]+)(?:\.git)?", stdout.strip())
     if not match:
         return None
     return f"{match.group(1)}/{match.group(2)}"

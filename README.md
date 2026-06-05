@@ -59,6 +59,8 @@ GITHUB_TOKEN=
 
 `GITHUB_TOKEN` is only needed when publishing.
 
+For one global key across all repos, create `%USERPROFILE%\.releaseguru.env` and put your provider key there. ReleaseGuru loads that file automatically.
+
 ## Basic Use
 
 ## Example Output
